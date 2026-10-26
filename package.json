@@ -1,0 +1,7 @@
+{
+  "name": "pharmai-triage-mvp",
+  "version": "0.2.0",
+  "private": true,
+  "description": "PharmAI-Triage MVP — situs statis, tanpa build step",
+  "scripts": { "test": "node tests/run-tests.js" }
+}

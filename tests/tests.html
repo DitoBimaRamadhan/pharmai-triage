@@ -1,0 +1,10 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>PharmAI-Triage — Uji Vinyet</title>
+<style>body{font-family:system-ui;padding:16px}.p{color:#00873A}.f{color:#E5384B;font-weight:700}</style></head>
+<body><h1>Uji vinyet klinis (browser)</h1><p>Versi lengkap (termasuk invarian & fuzz): <code>node tests/run-tests.js</code></p><ol id="o"></ol><p id="s"></p>
+<script src="../js/rules.js"></script><script src="../js/engine.js"></script><script src="vignettes.js"></script>
+<script>
+var p=0,f=0,o=document.getElementById('o');
+PharmVignettes.V.forEach(function(v){var r=PharmEngine.triage(v.input),ok=false;try{ok=!!v.check(r)}catch(e){}
+ok?p++:f++;var li=document.createElement('li');li.className=ok?'p':'f';li.textContent=(ok?'PASS ':'FAIL ')+v.name+(ok?'':' → '+r.status);o.appendChild(li);});
+document.getElementById('s').textContent=p+' lulus, '+f+' gagal';
+</script></body></html>

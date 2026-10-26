@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="PharmAI-Triage — skrining keluhan ringan & panduan swamedikasi obat bebas yang aman (MVP edukasi, bukan alat diagnosis).">
+<meta name="theme-color" content="#1A73E3">
+<title>PharmAI-Triage — Skrining & Swamedikasi Aman (MVP)</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+
+<header class="top">
+  <div class="avatar" aria-hidden="true">Rx</div>
+  <div class="hi"><b>PharmAI-Triage</b><span class="ready"><i class="dot"></i><span id="engineVer">Rules Engine siap</span></span></div>
+  <button class="theme" type="button" id="themeBtn" aria-label="Ganti tema terang/gelap">🌓</button>
+  <button class="sos" type="button" data-go="darurat">🚨 Darurat /<br>Red Flag Info</button>
+</header>
+
+<div class="disc" role="note">
+  <b>⚠️ Alat edukasi, bukan diagnosis.</b>
+  Hasil adalah <i>indikasi awal</i> dari aturan klinis draf yang belum disahkan apoteker. Hanya untuk keluhan ringan dewasa/anak dengan obat bebas (logo hijau) & bebas terbatas (logo biru). Bila ragu, tanyakan apoteker atau dokter. Keadaan darurat: <b>119</b> / <b>112</b>.
+</div>
+
+<!-- ================= VIEW: SKRINING ================= -->
+<main class="view" id="v-skrining">
+<section class="banner" aria-labelledby="t-skrining">
+  <h2 id="t-skrining">Mulai Skrining Mandiri</h2>
+  <p>Ceritakan keluhanmu, lalu lengkapi data keamanan di bawah.</p>
+  <div class="inputs">
+    <button class="inp" type="button" id="chatTile"><span>💬</span><b>Chat Teks</b><small>Ketik keluhan kesehatanmu</small></button>
+    <button class="inp" type="button" disabled aria-disabled="true"><i class="soon">Segera hadir</i><span>🎙️</span><b>Suara & Batuk</b><small>Analisis rekaman batuk (MFCC)</small></button>
+    <button class="inp" type="button" disabled aria-disabled="true"><i class="soon">Segera hadir</i><span>📸</span><b>Kamera PPG</b><small>Estimasi denyut nadi (pendukung)</small></button>
+  </div>
+  <div class="chat">
+    <label for="freeText" class="hint">Ceritakan keluhanmu (opsional)</label>
+    <textarea id="freeText" maxlength="600" placeholder="Contoh: tenggorokan gatal dan batuk berdahak sejak 2 hari"></textarea>
+    <div class="row">
+      <span class="kwnote">🔎 Saran modul berbasis <b>kata kunci sederhana</b>, bukan AI/LLM. Kamu tetap memilih sendiri.</span>
+      <button class="btn" type="button" id="suggestBtn">Sarankan</button>
+    </div>
+    <div class="suggest" id="suggestOut" aria-live="polite"></div>
+  </div>
+  <div class="temp">
+    <label for="suhu">🌡️ Suhu dari termometer digital<br><span style="font-size:10.5px">Kosongkan bila belum diukur</span></label>
+    <input id="suhu" type="number" step="0.1" min="30" max="45" inputmode="decimal" placeholder="—"><em>°C</em>
+  </div>
+</section>
+
+<div class="sec"><h2><span class="step">1</span>Modul keluhan</h2><span class="sub">Pilih satu</span></div>
+<div class="grid" id="mods"></div>
+
+<section class="card" id="symCard" hidden>
+  <h3>Keluhan spesifik <span class="sub">(boleh lebih dari satu)</span></h3>
+  <div class="checks" id="symList"></div>
+  <label class="f">Sudah berapa hari keluhan dirasakan?
+    <input id="durasi" type="number" min="0" max="365" inputmode="numeric" placeholder="hari">
+  </label>
+</section>
+
+<div class="sec"><h2><span class="step">2</span>Profil keamanan</h2><span class="sub">Wajib untuk dosis</span></div>
+<section class="card">
+  <div class="row">
+    <label class="f">Usia (tahun)<input id="ageY" type="number" min="0" max="110" inputmode="numeric" placeholder="th"></label>
+    <label class="f">+ bulan<input id="ageM" type="number" min="0" max="11" inputmode="numeric" placeholder="0–11" value="0"></label>
+    <label class="f">Berat (kg)<input id="bb" type="number" min="2" max="250" step="0.1" inputmode="decimal" placeholder="kg"></label>
+  </div>
+  <p class="hint" style="margin-top:4px">Untuk bayi, isi 0 tahun + jumlah bulan.</p>
+  <label class="f" id="pregWrap">Sedang hamil atau menyusui?
+    <select id="preg">
+      <option value="">— pilih —</option>
+      <option value="tidak">Tidak / laki-laki</option>
+      <option value="hamil">Ya, hamil</option>
+      <option value="menyusui">Ya, menyusui</option>
+      <option value="tidak_yakin">Tidak yakin</option>
+    </select>
+  </label>
+  <div class="grp">Penyakit yang dimiliki</div><div class="checks" id="comorbList"></div>
+  <div class="grp">Obat yang sedang dipakai</div><div class="checks" id="medList"></div>
+  <div class="grp">Alergi obat</div><div class="checks" id="allergyList"></div>
+  <label class="f">Alergi lain (ketik nama zat aktif)<input id="allergyText" type="text" maxlength="120" placeholder="mis. guaifenesin"></label>
+</section>
+
+<div class="sec"><h2><span class="step">3</span>Tanda bahaya</h2><span class="sub">Centang bila ada</span></div>
+<section class="card">
+  <p class="hint">Satu tanda bahaya saja = hentikan swamedikasi dan cari pertolongan.</p>
+  <div class="checks" id="flagList"></div>
+  <label class="chk" id="dbdWrap" hidden><input type="checkbox" id="dbd"><span>Curiga demam berdarah (DBD): demam mendadak tinggi, nyeri belakang mata/sendi, ada kasus DBD di sekitar</span></label>
+</section>
+
+<p class="err" id="formErr" role="alert"></p>
+<button class="btn wide" type="button" id="runBtn">Analisis dengan Rules Engine</button>
+
+<section class="card" id="result" aria-live="polite" hidden></section>
+</main>
+
+<!-- ================= VIEW: DAFTAR OBAT ================= -->
+<main class="view" id="v-obat" hidden>
+  <section class="card">
+    <h2>Daftar zat aktif (whitelist)</h2>
+    <p class="sub">Hanya zat aktif ini yang dapat disarankan rules engine. Tidak ada antibiotik atau obat keras.</p>
+    <div id="obatList" style="margin-top:12px"></div>
+    <p class="note">Golongan obat mengikuti registrasi <b>per produk</b>, bukan zat aktif saja. Selalu cek logo pada kemasan dan nomor registrasi di <a href="https://cekbpom.pom.go.id/" target="_blank" rel="noopener">cekbpom.pom.go.id</a>.</p>
+  </section>
+</main>
+
+<!-- ================= VIEW: DARURAT ================= -->
+<main class="view emer" id="v-darurat" hidden>
+  <section class="card" style="border-left:6px solid var(--red)">
+    <h2>🚨 Keadaan darurat</h2>
+    <p style="margin-top:6px">Segera ke <b>IGD terdekat</b> atau hubungi <a href="tel:119">119</a> (ambulans/gawat darurat) atau <a href="tel:112">112</a> (panggilan darurat) bila ada:</p>
+    <ul class="plain" id="emerList"></ul>
+  </section>
+  <section class="card">
+    <h2>Periksa ke dokter / Puskesmas bila</h2>
+    <ul class="plain">
+      <li>Suhu ≥ 39 °C, atau demam lebih dari 3 hari.</li>
+      <li>Bayi di bawah 3 bulan sakit apa pun (dengan demam: segera ke IGD).</li>
+      <li>Batuk ≥ 2 minggu (skrining TBC).</li>
+      <li>Keluhan melewati batas hari swamedikasi yang ditampilkan.</li>
+      <li>Sedang hamil/menyusui, punya penyakit kronis, atau memakai obat rutin — tanyakan apoteker dulu.</li>
+    </ul>
+  </section>
+</main>
+
+<!-- ================= VIEW: TENTANG ================= -->
+<main class="view" id="v-tentang" hidden>
+  <section class="card">
+    <h2>Tentang PharmAI-Triage (MVP)</h2>
+    <ul class="plain" style="margin-top:8px">
+      <li><b>Cara kerja:</b> Input → Profil keamanan → Filter tanda bahaya → Rules engine (whitelist obat bebas, kontraindikasi, dosis) → Panduan.</li>
+      <li><b>4 aturan keras:</b> (1) tidak pernah menyarankan antibiotik/obat keras; (2) tanda bahaya menghapus semua saran obat; (3) data kosong/ragu → konsultasi apoteker; (4) batas hari swamedikasi selalu ditampilkan.</li>
+      <li><b>Status:</b> chat menggunakan kata kunci sederhana (belum LLM). Analisis suara batuk & kamera PPG belum tersedia.</li>
+      <li><b>Privasi:</b> semua perhitungan berjalan di perangkatmu. Tidak ada data yang dikirim atau disimpan.</li>
+      <li><b>Versi aturan:</b> <span id="rulesVer"></span>. Nilai dosis & batas wajib disahkan apoteker pembimbing sebelum uji coba.</li>
+    </ul>
+  </section>
+</main>
+
+<p class="foot">Developed in Collaboration:<br><b>Dept. of Informatics Engineering</b> × <b>Dept. of Pharmacy &amp; Apothecary Profession</b></p>
+
+<nav aria-label="Navigasi utama">
+  <button class="on" type="button" data-go="skrining"><span>🩺</span>Skrining</button>
+  <button type="button" data-go="obat"><span>💊</span>Obat OTC</button>
+  <button type="button" data-go="darurat"><span>🚨</span>Darurat</button>
+  <button type="button" data-go="tentang"><span>ℹ️</span>Tentang</button>
+</nav>
+</div>
+<script src="js/rules.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
