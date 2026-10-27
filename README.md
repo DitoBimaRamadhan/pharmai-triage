@@ -1,5 +1,7 @@
 # PharmAI-Triage — MVP Web App
 
+<img src="https://aiclub.ai.id/builder/cf831f67405c41409b7fe459a3d49dc9.svg?style=classic&v=2" alt="Powered by AICLUB" width="200" height="36">
+
 Skrining keluhan ringan dan panduan **swamedikasi obat bebas & bebas terbatas** yang aman. Dibuat untuk kompetisi DeveloperDay.id / APICTA (kategori *Web Application / AI System*).
 
 > ⚠️ **Alat edukasi dan pendukung keputusan, bukan alat diagnosis.** Semua nilai dosis, batas hari, dan red flag adalah **draf** (rules v0.2-mvp, dikembangkan dari *draft clinical rules v0.1* di paper tim). Nilai-nilai ini **wajib diperiksa dan disahkan apoteker pembimbing** sebelum dipakai orang sungguhan.
